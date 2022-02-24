@@ -79,7 +79,7 @@ export class UdpBroadcast {
      * @param msg
      */
     public sendMsg(msg: string): void {
-        this._socket.send(new Buffer(msg),
+        this._socket.send(Buffer.from(msg),
             0,
             msg.length,
             this._mcastport,
@@ -88,8 +88,6 @@ export class UdpBroadcast {
                 if (err) {
                     console.log(err);
                 }
-
-                console.log('Message sent');
             });
     }
 

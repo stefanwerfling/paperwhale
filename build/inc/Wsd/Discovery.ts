@@ -42,6 +42,8 @@ export class Discovery {
      * @protected
      */
     protected _reciveProbeMatch(msg: string): void {
+        console.log('WSD-Discovery: recive ProbeMatches');
+
         if (msg) {
             const options = {
                 removeNSPrefix: true
@@ -82,11 +84,12 @@ export class Discovery {
                                 metadataversion: match.MetadataVersion as number,
                                 NSPrefix
                             });
+
+                            console.log(`WSD-Discovery: add/update device: '${wsaAddress}' xaddres: '${match.XAddrs}'`);
                         }
                     }
                 }
             }
-            console.log(xmlObj);
         }
     }
 
@@ -111,6 +114,8 @@ export class Discovery {
             '</soap:Envelope>';
 
         this._udpb.sendMsg(msg);
+
+        console.log('WSD-Discovery: send Probe');
     }
 
     /**

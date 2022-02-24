@@ -1,0 +1,27 @@
+{
+  "db": {
+    "mysql": {
+      "host": "10.129.0.2",
+      "port": 3306,
+      "username": "root",
+      "password": "test",
+      "database": "paperwhale"
+    }
+  },
+  "wsd": {
+    "host": "192.168.0.123"
+  },
+  "setup": {
+    "username": "pwadmin",
+    "password": "test1234"
+  },
+  "httpserver": {
+    "api": {
+      "port": 3001
+    },
+    "setup": {
+      "port": 3000,
+      "publicdir": "public"
+    }
+  }
+}

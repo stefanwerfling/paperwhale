@@ -1,33 +1,136 @@
+import cookieParser from 'cookie-parser';
+import minimist from 'minimist';
+import * as path from 'path';
+import * as fs from 'fs';
+import * as bodyParser from 'body-parser';
+import session from 'express-session';
+import 'reflect-metadata';
+
+import {Files} from './app/Api/Files';
+import {Config} from './inc/Config/Config';
+import {HttpServer} from './inc/Server/HttpServer';
 import {DeviceDestinationClientContext} from './inc/Wsd/DeviceDestination';
 import {Wsd} from './inc/Wsd/Wsd';
 
 /**
- *
+ * Main
  */
 (async(): Promise<void> => {
-    const wsd = new Wsd();
+    const argv = minimist(process.argv.slice(2));
+    let configfile = path.join(__dirname, '/config.json');
 
-    wsd.addDeviceInfo({
-        identId: 'cf812aee-d68f-4368-97ac-a341191afac5',
-        expires: 1,
-        endto: 'http://192.168.0.123:5357/endto/',
-        notifyto: 'http://192.168.0.123:5357/notifyto/',
-        destinations: [{
-            clientDisplayName: 'Paperwhale-Document',
-            clientContext: DeviceDestinationClientContext.Scan
-        }]
-    });
+    if (argv.config) {
+        configfile = argv.config;
+    }
 
-    wsd.addDeviceInfo({
-        identId: 'df975389-d4d5-47d8-ba14-707b0c467c27',
-        expires: 1,
-        endto: 'http://192.168.0.123:5357/endto/',
-        notifyto: 'http://192.168.0.123:5357/notifyto/',
-        destinations: [{
-            clientDisplayName: 'Paperwhale-Stb',
-            clientContext: DeviceDestinationClientContext.Scan
-        }]
-    });
+    try {
+        if (!fs.existsSync(configfile)) {
+            console.log(`Config not found: ${configfile}, exit.`);
+            return;
+        }
+    } catch (err) {
+        console.log(`Config is not load: ${configfile}, exit.`);
+        console.error(err);
+        return;
+    }
 
-    wsd.listen();
+    const config = await Config.load(configfile);
+
+    if (config === null) {
+        console.log(`Configloader is return empty config, please check your configfile: ${configfile}`);
+        return;
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    try {
+        if (config.wsd) {
+            let port: number|undefined;
+
+            if (config.wsd.httpserver) {
+                port = config.wsd.httpserver?.port;
+            }
+
+            const wsdd = new Wsd(config.wsd.host, port);
+
+            wsdd.addDeviceInfo({
+                identId: 'cf812aee-d68f-4368-97ac-a341191afac5',
+                expires: 1,
+                destinations: [{
+                    clientDisplayName: 'Paperwhale-Document',
+                    clientContext: DeviceDestinationClientContext.Scan
+                }]
+            });
+
+            wsdd.addDeviceInfo({
+                identId: 'df975389-d4d5-47d8-ba14-707b0c467c27',
+                expires: 1,
+                destinations: [{
+                    clientDisplayName: 'Paperwhale-Stb',
+                    clientContext: DeviceDestinationClientContext.Scan
+                }]
+            });
+
+            wsdd.listen();
+        }
+    } catch (error) {
+        console.log('Error while wsd start', error);
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    try {
+        let apiServerPort = 3001;
+        let apiSessionSecret = 'pwapi';
+        let apiSessionCookiePath = '/';
+        let apiSessionCookieMaxAge = 604800000;
+
+        if (config.httpserver.api.port) {
+            apiServerPort = config.httpserver.api.port;
+        }
+
+        if (config.httpserver.api.session) {
+            const configApiSession = config.httpserver.api.session;
+
+            if (configApiSession.secret) {
+                apiSessionSecret = configApiSession.secret;
+            }
+
+            if (configApiSession.cookie_path) {
+                apiSessionCookiePath = configApiSession.cookie_path;
+            }
+
+            if (configApiSession.cookie_max_age) {
+                apiSessionCookieMaxAge = configApiSession.cookie_max_age;
+            }
+        }
+
+        const apiserver = new HttpServer({
+            port: apiServerPort,
+            middleWares: [
+                bodyParser.urlencoded({extended: true}),
+                bodyParser.json(),
+                cookieParser(),
+                session({
+                    secret: apiSessionSecret,
+                    resave: true,
+                    saveUninitialized: true,
+                    store: new session.MemoryStore(),
+                    cookie: {
+                        path: apiSessionCookiePath,
+                        secure: false,
+                        maxAge: apiSessionCookieMaxAge
+                    }
+                })
+            ],
+            routes: [],
+            controllers: [
+                Files
+            ]
+        });
+
+        apiserver.listen();
+    } catch (error) {
+        console.log('Error while api start', error);
+    }
 })();

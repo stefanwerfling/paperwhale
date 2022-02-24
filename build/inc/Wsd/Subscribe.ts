@@ -1,7 +1,24 @@
 import {Common} from './Common';
 import {Device} from './Device';
+import {DeviceDestination} from './DeviceDestination';
 import {DeviceInfo} from './DeviceInfo';
 import got from 'got';
+
+/**
+ * SubscribeDeviceInfo
+ */
+export type SubscribeDeviceInfo = {
+    // identification id
+    identId: string;
+    // display and context
+    destinations: DeviceDestination[];
+    // expires time in minutes
+    expires: number;
+    // url to endpoint
+    endto: string;
+    // url to notify
+    notifyto: string;
+};
 
 /**
  * subcribe
@@ -22,7 +39,12 @@ export class Subscribe {
         this._device = device;
     }
 
-    public async send(deviceInfo: DeviceInfo, fromId: string): Promise<void> {
+    /**
+     * send
+     * @param deviceInfo
+     * @param fromId
+     */
+    public async send(deviceInfo: SubscribeDeviceInfo, fromId: string): Promise<void> {
         const NSPrefix = this._device.NSPrefix;
         const msgid = Common.getNewMsgId();
         const expire = `PT${deviceInfo.expires}M`;
@@ -74,19 +96,25 @@ export class Subscribe {
             </${NSPrefix}:Body>
         </${NSPrefix}:Envelope>`;
 
-        const response = await got.post({
-            method: 'POST',
-            url: `${this._device.xaddrs}/`,
-            responseType: 'text',
-            resolveBodyOnly: false,
-            headers: {
-                'Content-Type': 'application/soap+xml; charset="utf-8',
-                'Connection': 'Keep-Alive'
-            },
-            body: msg
-        });
+        console.log(`WSD-Subcribe: send to ${this._device.xaddrs}`);
 
-        console.log(response.body);
+        try {
+            const response = await got.post({
+                method: 'POST',
+                url: `${this._device.xaddrs}/`,
+                responseType: 'text',
+                resolveBodyOnly: false,
+                headers: {
+                    'Content-Type': 'application/soap+xml; charset="utf-8',
+                    'Connection': 'Keep-Alive'
+                },
+                body: msg
+            });
+
+            console.log(response);
+        } catch (error) {
+            console.log(error);
+        }
     }
 
 }
