@@ -1,9 +1,9 @@
 <p style="align-content: center">
-<img src="doc/images/logo.png" width="100%">
+<img src="doc/images/logo.png" alt="Logo" width="100%">
 </p><br>
 
-![LGTM Grade](https://img.shields.io/lgtm/grade/javascript/github/stefanwerfling/paperwhale?style=for-the-badge)
-![LGTM Alerts](https://img.shields.io/lgtm/alerts/github/stefanwerfling/paperwhale?style=for-the-badge)
+[![LGTM Grade](https://img.shields.io/lgtm/grade/javascript/github/stefanwerfling/paperwhale?style=for-the-badge)](https://lgtm.com/projects/g/stefanwerfling/paperwhale/)
+[![LGTM Alerts](https://img.shields.io/lgtm/alerts/github/stefanwerfling/paperwhale?style=for-the-badge)](https://lgtm.com/projects/g/stefanwerfling/paperwhale/)
 
 # Paper-Whale
 Paper-Whale is a service for image processing. The service is integrated into other software as an API.
