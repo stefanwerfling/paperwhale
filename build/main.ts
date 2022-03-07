@@ -81,9 +81,10 @@ import {Wsd} from './inc/Wsd/Wsd';
 
     try {
         let apiServerPort = 3001;
-        let apiSessionSecret = 'pwapi';
+        let apiSessionSecret = HttpServer.SESSION_SECRET;
         let apiSessionCookiePath = '/';
         let apiSessionCookieMaxAge = 604800000;
+        let apiSessionCookieSecure = true;
 
         if (config.httpserver.api.port) {
             apiServerPort = config.httpserver.api.port;
@@ -103,6 +104,10 @@ import {Wsd} from './inc/Wsd/Wsd';
             if (configApiSession.cookie_max_age) {
                 apiSessionCookieMaxAge = configApiSession.cookie_max_age;
             }
+
+            if (typeof configApiSession.cookie_secure !== 'undefined') {
+                apiSessionCookieSecure = configApiSession.cookie_secure;
+            }
         }
 
         const apiserver = new HttpServer({
@@ -118,7 +123,7 @@ import {Wsd} from './inc/Wsd/Wsd';
                     store: new session.MemoryStore(),
                     cookie: {
                         path: apiSessionCookiePath,
-                        secure: false,
+                        secure: apiSessionCookieSecure,
                         maxAge: apiSessionCookieMaxAge
                     }
                 })

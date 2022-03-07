@@ -5,7 +5,7 @@ import {DeviceInfo} from './DeviceInfo';
 import {Discovery} from './Discovery';
 import {EndTo} from './Server/EndTo';
 import {NotifyTo} from './Server/NotifyTo';
-import {Subscribe, SubscribeDeviceInfo} from './Subscribe';
+import {Eventing, SubscribeDeviceInfo} from './Eventing';
 
 /**
  * Wsd
@@ -92,7 +92,7 @@ export class Wsd {
 
         for (const device of devices) {
             for (const deviceInfo of this._deviceInfos) {
-                const subscribe = new Subscribe(device);
+                const eventing = new Eventing(device);
 
                 const subscribeDevice: SubscribeDeviceInfo = {
                     identId: deviceInfo.identId,
@@ -102,7 +102,7 @@ export class Wsd {
                     notifyto: `http://${this._host}:${this._port}/notifyto/`
                 };
 
-                await subscribe.send(subscribeDevice, this._serviceId);
+                await eventing.sendSubscribe(subscribeDevice, this._serviceId);
             }
         }
     }

@@ -22,6 +22,7 @@ interface ConfigOptions {
                 secret?: string;
                 cookie_path?: string;
                 cookie_max_age?: number;
+                cookie_secure?: boolean;
             };
         };
 
@@ -32,6 +33,7 @@ interface ConfigOptions {
                 secret?: string;
                 cookie_path?: string;
                 cookie_max_age?: number;
+                cookie_secure?: boolean;
             };
         };
     };

@@ -9,6 +9,11 @@ import {useExpressServer} from 'routing-controllers';
 export class HttpServer {
 
     /**
+     * session secret
+     */
+    public static SESSION_SECRET = 'pwapi';
+
+    /**
      * server object
      * @private
      */

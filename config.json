@@ -9,7 +9,7 @@
     }
   },
   "wsd": {
-    "host": "192.168.0.123"
+    "host": "192.168.68.115"
   },
   "setup": {
     "username": "pwadmin",
@@ -17,7 +17,11 @@
   },
   "httpserver": {
     "api": {
-      "port": 3001
+      "port": 3001,
+      "session": {
+        "secret": "pwapi",
+        "cookie_secure": false
+      }
     },
     "setup": {
       "port": 3000,

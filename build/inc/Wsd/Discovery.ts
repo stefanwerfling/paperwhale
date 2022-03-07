@@ -1,11 +1,17 @@
 import {XMLParser} from 'fast-xml-parser';
 import {scheduleJob} from 'node-schedule';
-import {Common} from './Common';
 import {Device} from './Device';
 import {UdpBroadcast} from './Protocol/UdpBroadcast';
+import {SoapMessage} from './Soap/SoapMessage';
+import {Action} from './Soap/Wsa/Action';
+import {MessageID} from './Soap/Wsa/MessageID';
+import {To} from './Soap/Wsa/To';
+import {Probe} from './Soap/Wsd/Probe';
+import {WsdTypes} from './Soap/Wsd/WsdTypes';
 
 /**
  * Discovery
+ * @see https://github.com/shengjuntu/onvif-discovery/blob/master/wsddapi.c
  */
 export class Discovery {
 
@@ -51,7 +57,7 @@ export class Discovery {
 
             let NSPrefix = 'soap';
 
-            if (msg.indexOf('SOAP-ENV')) {
+            if (msg.indexOf('SOAP-ENV') > -1) {
                 NSPrefix = 'SOAP-ENV';
             }
 
@@ -85,7 +91,7 @@ export class Discovery {
                                 NSPrefix
                             });
 
-                            console.log(`WSD-Discovery: add/update device: '${wsaAddress}' xaddres: '${match.XAddrs}'`);
+                            console.log(`WSD-Discovery: add/update device: '${wsaAddress}' xaddres: '${match.XAddrs}' Types: '${match.Types}'`);
                         }
                     }
                 }
@@ -98,22 +104,23 @@ export class Discovery {
      * @protected
      */
     protected sendProbe(): void {
-        const msgid = Common.getNewMsgId();
-        const msg = '<?xml version="1.0" encoding="utf-8"?>\n' +
-            '<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsd="http://schemas.xmlsoap.org/ws/2005/04/discovery" xmlns:wsdp="http://schemas.xmlsoap.org/ws/2006/02/devprof">\n' +
-            '   <soap:Header>\n' +
-            '       <wsa:To>urn:schemas-xmlsoap-org:ws:2005:04:discovery</wsa:To>\n' +
-            '       <wsa:Action>http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe</wsa:Action>\n' +
-            `       <wsa:MessageID>urn:${msgid}</wsa:MessageID>\n` +
-            '   </soap:Header>\n' +
-            '   <soap:Body>\n' +
-            '       <wsd:Probe>\n' +
-            '           <wsd:Types>wsdp:Device</wsd:Types>\n' +
-            '       </wsd:Probe>\n' +
-            '   </soap:Body>\n' +
-            '</soap:Envelope>';
+        const soapMsg = new SoapMessage();
 
-        this._udpb.sendMsg(msg);
+        soapMsg.getEnvelope().addSchema('soap', 'http://www.w3.org/2003/05/soap-envelope');
+        soapMsg.getEnvelope().addSchema('wsa', 'http://schemas.xmlsoap.org/ws/2004/08/addressing');
+        soapMsg.getEnvelope().addSchema('wsd', 'http://schemas.xmlsoap.org/ws/2005/04/discovery');
+        soapMsg.getEnvelope().addSchema('wsdp', 'http://schemas.xmlsoap.org/ws/2006/02/devprof');
+
+        const header = soapMsg.getEnvelope().getHeader();
+        header.addEntrie(new To('urn:schemas-xmlsoap-org:ws:2005:04:discovery'));
+        header.addEntrie(new Action('http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe'));
+        header.addEntrie(new MessageID());
+
+        const prob = new Probe();
+        prob.getTypes().setType(WsdTypes.Device);
+        soapMsg.getEnvelope().getBody().addEntrie(prob);
+
+        this._udpb.sendMsg(soapMsg.generate());
 
         console.log('WSD-Discovery: send Probe');
     }
