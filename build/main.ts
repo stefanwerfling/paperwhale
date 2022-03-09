@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import * as bodyParser from 'body-parser';
 import session from 'express-session';
 import 'reflect-metadata';
+import {v4 as uuid} from 'uuid';
 
 import {Files} from './app/Api/Files';
 import {Config} from './inc/Config/Config';
@@ -81,7 +82,7 @@ import {Wsd} from './inc/Wsd/Wsd';
 
     try {
         let apiServerPort = 3001;
-        let apiSessionSecret = HttpServer.SESSION_SECRET;
+        let apiSessionSecret = uuid();
         let apiSessionCookiePath = '/';
         let apiSessionCookieMaxAge = 604800000;
         let apiSessionCookieSecure = true;
